@@ -9,3 +9,8 @@ class Task(StatesGroup):
     answer1 = State()
     answer2 = State()
     answer3 = State()
+
+
+class Payment(StatesGroup):
+    answer1 = State()
+    question1 = "Укажите сумму к оплате"

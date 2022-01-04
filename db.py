@@ -21,3 +21,11 @@ class Database():
             data = cursor.execute(f'SELECT balance FROM users WHERE user_id = {user_id}')
             self.conn.close
             return data.fetchone()[0]
+
+    def update_balance(self, new_balance, user_id):
+        with self.conn:
+            cursor = self.conn.cursor()
+            cursor.execute(f'UPDATE users SET balance = {new_balance} WHERE user_id = {user_id}')
+            self.conn.commit
+            self.conn.close
+            
