@@ -6,12 +6,12 @@ class Database():
     def __init__(self) -> None:
         self.conn = sqlite3.connect("database.db")
 
-    def check_or_create_user(self, user_id):
+    def check_or_create_user(self, user_id, first_name, last_name):
         with self.conn:
             cursor = self.conn.cursor()
             info = cursor.execute(f'SELECT * FROM users WHERE user_id = {user_id}')
             if info.fetchone() is None:
-                cursor.execute(f'INSERT INTO users(user_id, balance) VALUES ({user_id}, 0)')
+                cursor.execute('INSERT INTO users(user_id, first_name, last_name, balance) VALUES (?, ?, ?, ?)', (user_id, first_name, last_name, 0))
             self.conn.commit
             self.conn.close
 
@@ -22,10 +22,11 @@ class Database():
             self.conn.close
             return data.fetchone()[0]
 
-    def update_balance(self, new_balance, user_id):
+    def update_balance(self, user_id, money):
         with self.conn:
             cursor = self.conn.cursor()
+            balance = cursor.execute(f'SELECT balance FROM users WHERE user_id = {user_id}').fetchone()[0]
+            new_balance = int(balance) + int(money)
             cursor.execute(f'UPDATE users SET balance = {new_balance} WHERE user_id = {user_id}')
             self.conn.commit
             self.conn.close
-            

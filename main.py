@@ -1,9 +1,11 @@
+from platform import python_branch
 from types import new_class
 from aiogram import Bot, Dispatcher, executor, types
 from aiogram.dispatcher.storage import FSMContext
 from aiogram.types import message_id
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
+from aiogram.types.input_media import InputMediaPhoto
 from aiogram.types.message import ContentType, Message
 import markups as nav
 from states import Task, Payment
@@ -15,6 +17,7 @@ with open('config.json') as conf:
     config = json.load(conf)
     TOKEN = config['token']
     test_payload_token = config['test_payment_id']
+    channel_id = config["channel_id"]
 
 
 # Инициализация бота
@@ -23,22 +26,11 @@ storage = MemoryStorage()
 dp = Dispatcher(bot, storage=storage)
 db = Database()
 
-@dp.pre_checkout_query_handler()
-async def pre_checkout(pre_checkout_query: types.PreCheckoutQuery):
-    print(pre_checkout_query)
-    await bot.answer_pre_checkout_query(pre_checkout_query.id, ok=True)
 
-
-@dp.message_handler(content_types=ContentType.SUCCESSFUL_PAYMENT)
-async def process_pay(message: types.Message):
-    print(message['total_amount'])
-    if message.successful_payment.invoice_payload == 'test_payload':
-        await bot.send_message(message.from_user.id, 'Оплата прошла успешно!')
-        
 @dp.message_handler(commands=['start'])
 async def roleMenu(message: types.Message):
     await bot.delete_message(message.chat.id, message.message_id)
-    db.check_or_create_user(message.from_user.id)
+    db.check_or_create_user(message.from_user.id, message.from_user.first_name, message.from_user.last_name)
     await bot.send_message(
         message.from_user.id, 
         'Здравствуй {}! Ты заказчик или дизайнер?'.format(message.from_user['first_name']), 
@@ -52,10 +44,7 @@ async def mainMenuCustomer(message: types.Message):
     await bot.send_message(message.from_user.id, description, reply_markup=nav.customerMenu)
 
 
-
-
-
-# узнаём баланс
+# # узнаём баланс
 async def check_balance(message: types.Message):
         await bot.delete_message(message.chat.id, message.message_id)
         balance = db.check_balance(message.from_user.id)
@@ -73,6 +62,7 @@ async def replenish_balance(message: types.Message):
 async def send_invoice(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         data["answer1"] = message.text
+    await state.finish()
     await bot.send_invoice(
         chat_id=message.chat.id,
         title="Пополнение счёта",
@@ -83,8 +73,20 @@ async def send_invoice(message: types.Message, state: FSMContext):
         start_parameter="test_bot",
         prices=[{"label": "Руб", "amount": int(data["answer1"]) * 100}]
     )
-    print('>>>>> Send invoice')
 
+
+@dp.pre_checkout_query_handler()
+async def pre_checkout(pre_checkout_query: types.PreCheckoutQuery):
+    await bot.answer_pre_checkout_query(pre_checkout_query.id, ok=True)
+
+
+@dp.message_handler(content_types=ContentType.SUCCESSFUL_PAYMENT)
+async def process_pay(message: types.Message):
+    if message.successful_payment.invoice_payload == 'test_payload':
+        db.update_balance(message.from_user.id, int(message.successful_payment["total_amount"] / 100))
+        new_balance = db.check_balance(message.from_user.id)
+        await bot.send_message(message.from_user.id, f'Оплата прошла успешно!\n<b>Ваш баланс: {new_balance} руб.</b>')
+        
 
 # размещаем объявление
 async def enter_task(message: types.Message):
@@ -113,10 +115,13 @@ async def answer_3(message: types.Message, state: FSMContext):
     result = await state.get_data()
     task_message = '''
     {}\n
-    Сумма вознаграждения: <b>{}</b> 
+    Сумма вознаграждения: <b>{} руб.</b> 
     '''.format(result['answer2'], result['answer3'])
     await bot.send_message(message.from_user.id, Task.task_complete)
-    await bot.send_message(-1001773059385, task_message)
+    await bot.send_message(channel_id, task_message)
+    photo = "https://im0-tub-ru.yandex.net/i?id=abfd57bcecb830e70faa84c21cfe8ccd-srl&n=44"
+    media = [InputMediaPhoto(photo, task_message)]
+    # await bot.send_media_group(message.from_user.id, media)
     await state.finish()
 
 
