@@ -1,12 +1,10 @@
-from platform import python_branch
-from types import new_class
+from typing import List
+from aiogram_media_group import MediaGroupFilter, media_group_handler
 from aiogram import Bot, Dispatcher, executor, types
 from aiogram.dispatcher.storage import FSMContext
-from aiogram.types import message_id
-from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.types.input_media import InputMediaPhoto
-from aiogram.types.message import ContentType, Message
+from aiogram.types.message import ContentType
 import markups as nav
 from states import Task, Payment
 from db import Database
@@ -18,10 +16,12 @@ with open('config.json') as conf:
     TOKEN = config['token']
     test_payload_token = config['test_payment_id']
     channel_id = config["channel_id"]
+    price_for_order = config["price_for_order"]
+    price_for_comment = config["price_for_comment"]
 
 
 # Инициализация бота
-bot = Bot(token=TOKEN, parse_mode=types.ParseMode.HTML)
+bot = Bot(token=TOKEN, parse_mode=types.ParseMode.HTML, )
 storage = MemoryStorage()
 dp = Dispatcher(bot, storage=storage)
 db = Database()
@@ -33,22 +33,24 @@ async def roleMenu(message: types.Message):
     db.check_or_create_user(message.from_user.id, message.from_user.first_name, message.from_user.last_name)
     await bot.send_message(
         message.from_user.id, 
-        'Здравствуй {}! Ты заказчик или дизайнер?'.format(message.from_user['first_name']), 
-        reply_markup=nav.roleMenu)
+        'Здравствуй {}! бла бла бла какой нибудь текст'.format(message.from_user['first_name']),
+        reply_markup=nav.customerMenu)
 
 
-@dp.callback_query_handler(text='mainMenuCustomer')
-async def mainMenuCustomer(message: types.Message):
-    await bot.delete_message(message.from_user.id, message.message.message_id)
-    description = 'Добро пожаловать! Я помогу Вам найти исполнителя, просто разместите свое объявление. Стоимость составляет {price} руб.'
-    await bot.send_message(message.from_user.id, description, reply_markup=nav.customerMenu)
+# @dp.callback_query_handler(text='mainMenuCustomer')
+# async def mainMenuCustomer(message: types.Message):
+#     await bot.delete_message(message.from_user.id, message.message.message_id)
+#     description = 'Добро пожаловать! Я помогу Вам найти исполнителя, просто разместите свое объявление. ' \
+#                   'Стоимость составляет {price} руб.'
+#     await bot.send_message(message.from_user.id, description, reply_markup=nav.customerMenu)
 
 
 # # узнаём баланс
 async def check_balance(message: types.Message):
-        await bot.delete_message(message.chat.id, message.message_id)
-        balance = db.check_balance(message.from_user.id)
-        await bot.send_message(message.from_user.id, f'<b>Ваш баланс {balance} руб.</b>')
+    await bot.delete_message(message.chat.id, message.message_id)
+    balance = db.check_balance(message.from_user.id)
+    await bot.send_message(message.from_user.id, f'<b>Ваш баланс {balance} руб.</b>', show_alert=True)
+    # await bot.answer_callback_query(message.from_user.id, f'<b>Ваш баланс {balance} руб.</b>', show_alert=True)
 
 
 #  пополняем баланс
@@ -88,40 +90,36 @@ async def process_pay(message: types.Message):
         await bot.send_message(message.from_user.id, f'Оплата прошла успешно!\n<b>Ваш баланс: {new_balance} руб.</b>')
         
 
-# размещаем объявление
+# создаём объявление
 async def enter_task(message: types.Message):
     await bot.delete_message(message.chat.id, message.message_id)
-    await bot.send_message(message.from_user.id, Task.question1)
-    await Task.answer1.set()
+    if db.check_balance(message.from_user.id) > price_for_order:
+        await bot.send_message(message.from_user.id, Task.set_text_question)
+        await Task.set_text.set()
+    else:
+        await bot.send_message(message.from_user.id, f"У вас недостаточно средств на балансе. Ваш баланс "
+                                                     f"<b>{db.check_balance(message.from_user.id)}</b> руб.")
 
-@dp.message_handler(state=Task.answer1)
-async def answer_1(message: types.Message, state: FSMContext):
+
+@dp.message_handler(state=Task.set_text)
+async def set_text_message(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
-        data["answer1"] = message.text
-    await message.answer(Task.question2)
+        data["set_text"] = message.text
+    await message.answer(Task.set_image_question)
     await Task.next()
 
-@dp.message_handler(state=Task.answer2)
-async def answer_2(message: types.Message, state: FSMContext):
-    async with state.proxy() as data:
-        data["answer2"] = message.text
-    await message.answer(Task.question3)
-    await Task.next()
 
-@dp.message_handler(state=Task.answer3)
-async def answer_3(message: types.Message, state: FSMContext):
-    async with state.proxy() as data:
-        data["answer3"] = message.text
+@dp.message_handler(MediaGroupFilter(), content_types=ContentType.PHOTO, state=Task.set_image)
+@media_group_handler
+async def set_images(messages: List[types.Message], state: FSMContext):
     result = await state.get_data()
-    task_message = '''
-    {}\n
-    Сумма вознаграждения: <b>{} руб.</b> 
-    '''.format(result['answer2'], result['answer3'])
-    await bot.send_message(message.from_user.id, Task.task_complete)
-    await bot.send_message(channel_id, task_message)
-    photo = "https://im0-tub-ru.yandex.net/i?id=abfd57bcecb830e70faa84c21cfe8ccd-srl&n=44"
-    media = [InputMediaPhoto(photo, task_message)]
-    # await bot.send_media_group(message.from_user.id, media)
+    images = []
+    for message in messages:
+        if messages.index(message) == 0:
+            images.append(InputMediaPhoto(message.photo[-1].file_id, result['set_text']))
+        else:
+            images.append(InputMediaPhoto(message.photo[-1].file_id))
+    await bot.send_media_group(message.from_user.id, images)
     await state.finish()
 
 

@@ -1,5 +1,7 @@
 {
     "token": "1174022654:AAHP3PA0H_7UJX9AbyJAJ0W9CzVHn_2YFdo",
     "test_payment_id": "381764678:TEST:32186",
-    "channel_id": -1001773059385
+    "channel_id": -1001773059385,
+    "price_for_order": 20,
+    "price_for_comment": 5
 }

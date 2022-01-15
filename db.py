@@ -20,7 +20,7 @@ class Database():
             cursor = self.conn.cursor()
             data = cursor.execute(f'SELECT balance FROM users WHERE user_id = {user_id}')
             self.conn.close
-            return data.fetchone()[0]
+            return int(data.fetchone()[0])
 
     def update_balance(self, user_id, money):
         with self.conn:
