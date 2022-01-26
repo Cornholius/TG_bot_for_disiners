@@ -4,7 +4,7 @@ import sqlite3
 class Database():
     
     def __init__(self) -> None:
-        self.conn = sqlite3.connect("database.db")
+        self.conn = sqlite3.connect("./database/database.db")
 
     def check_or_create_user(self, user_id, first_name, last_name):
         with self.conn:
