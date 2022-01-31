@@ -1,7 +1,7 @@
 from aiogram import types
 from aiogram.dispatcher import FSMContext
 from aiogram.types import CallbackQuery, ContentType
-from keyboards import back_to_main_menu, main_menu
+from keyboards import back_to_main_menu, cancel_menu
 from loader import dp, bot, db, test_payload_token
 from states import Payment
 from states import Task
@@ -20,7 +20,7 @@ async def check_balance(call: CallbackQuery):
 async def replenish_balance(call: types.CallbackQuery):
     await clear_bot_messages(call.from_user.id)
     await bot.delete_message(call.from_user.id, call.message.message_id)
-    msg = await bot.send_message(call.from_user.id, Payment.question1)
+    msg = await bot.send_message(call.from_user.id, Payment.question1, reply_markup=cancel_menu)
     Task.bot_last_message.append(msg.message_id)
     await Payment.answer1.set()
 
