@@ -3,6 +3,7 @@ from aiogram.dispatcher import FSMContext
 from aiogram.types import ContentType
 from keyboards import menu_callback, task_image_Menu, task_send_to_channel_menu, cancel_menu, back_to_main_menu
 from keyboards.callback_datas import task_callback
+from keyboards.task_menu import task_send_to_newsletter_menu
 from loader import dp, bot, db, price_for_order, channel_id
 from logic.clear_mesages import cleaner
 from states import Task
@@ -10,7 +11,12 @@ from states import Task
 
 # Начинаем создавать объявление
 @dp.callback_query_handler(menu_callback.filter(btn='MESSAGE_announcement'))
-async def enter_task(message: types.Message):
+@dp.callback_query_handler(menu_callback.filter(btn='MESSAGE_newsletter'))
+async def enter_task(message: types.Message, callback_data: dict):
+    state = dp.current_state(chat=message.from_user.id, user=message.from_user.id)
+    await state.set_state(Task.task_type)
+    async with state.proxy() as data:
+        data['task_type'] = callback_data['btn']
     await cleaner.clear_bot_messages(message.from_user.id)
     await bot.delete_message(message.from_user.id, message.message.message_id)
     msg = await bot.send_message(message.from_user.id, Task.set_text_question, reply_markup=cancel_menu)
@@ -21,6 +27,7 @@ async def enter_task(message: types.Message):
 # Текст объявления с выбором нужна ли картинка\фото
 @dp.message_handler(state=Task.set_text)
 async def set_text_message(message: types.Message, state: FSMContext):
+
     await cleaner.clear_bot_messages(message.chat.id)
     async with state.proxy() as data:
         data["set_text"] = message.text
@@ -37,7 +44,11 @@ async def no_need_image(message: types.Message, state: FSMContext):
         data["need_image"] = False
     result = await state.get_data()
     msg_preview = await bot.send_message(message.from_user.id, Task.check_before_send)
-    msg_user = await bot.send_message(message.from_user.id, result['set_text'], reply_markup=task_send_to_channel_menu)
+    if result['task_type'] == 'MESSAGE_announcement':
+        menu = task_send_to_channel_menu
+    else:
+        menu = task_send_to_newsletter_menu
+    msg_user = await bot.send_message(message.from_user.id, result['set_text'], reply_markup=menu)
     cleaner.trash.extend([msg_user.message_id, msg_preview.message_id])
 
 
@@ -52,7 +63,7 @@ async def need_image(message: types.Message, state: FSMContext):
     await Task.set_image.set()
 
 
-# Отлавливаем картинку и формирует объявление с ней
+# Получаем картинку и формируем объявление с ней
 @dp.message_handler(content_types=[ContentType.PHOTO], state=Task.set_image)
 async def set_images(message: types.Message, state: FSMContext):
     await cleaner.clear_bot_messages(message.from_user.id)
@@ -61,16 +72,21 @@ async def set_images(message: types.Message, state: FSMContext):
     await bot.delete_message(message.chat.id, message.message_id)
     result = await state.get_data()
     msg_preview = await bot.send_message(message.from_user.id, Task.check_before_send)
+    if result['task_type'] == 'MESSAGE_announcement':
+        menu = task_send_to_channel_menu
+    else:
+        menu = task_send_to_newsletter_menu
     msg_user = await bot.send_photo(
         message.from_user.id,
         photo=result['set_image'],
         caption=result['set_text'],
-        reply_markup=task_send_to_channel_menu)
+        reply_markup=menu)
     cleaner.trash.extend([msg_user.message_id, msg_preview.message_id])
 
 
 # Формирование объявление с\без картинки и отправка в канал
 @dp.callback_query_handler(task_callback.filter(btn='MESSAGE_send_to_channel'), state='*')
+@dp.callback_query_handler(task_callback.filter(btn='MESSAGE_send_to_newsletter'), state='*')
 async def send_to_channel(message: types.Message, state: FSMContext):
     await cleaner.clear_bot_messages(message.from_user.id)
     result = await state.get_data()

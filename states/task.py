@@ -10,4 +10,4 @@ class Task(StatesGroup):
     set_text = State()
     set_image = State()
     choise = State()
-    bot_last_message = []
+    task_type = State()
