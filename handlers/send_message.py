@@ -87,20 +87,28 @@ async def set_images(message: types.Message, state: FSMContext):
 # Формирование объявление с\без картинки и отправка в канал
 @dp.callback_query_handler(task_callback.filter(btn='MESSAGE_send_to_channel'), state='*')
 @dp.callback_query_handler(task_callback.filter(btn='MESSAGE_send_to_newsletter'), state='*')
-async def send_to_channel(message: types.Message, state: FSMContext):
+async def send_to_channel(message: types.Message, state: FSMContext, callback_data: dict):
     await cleaner.clear_bot_messages(message.from_user.id)
     result = await state.get_data()
     user_account = db.check_balance(message.from_user.id)
     if user_account > price_for_order:
         db.update_balance(message.from_user.id, -price_for_order)
         balance_now = db.check_balance(message.from_user.id)
-        if result['need_image']:
-            await bot.send_photo(channel_id, photo=result["set_image"], caption=result['set_text'])
+        if callback_data['btn'] == 'MESSAGE_send_to_channel':
+            if result['need_image']:
+                await bot.send_photo(channel_id, photo=result["set_image"], caption=result['set_text'])
+            else:
+                await bot.send_message(channel_id, result['set_text'])
+            text = 'Ваше сообщение отправлено в канал.'
         else:
-            await bot.send_message(channel_id, result['set_text'])
+            if result['need_image']:
+                pass
+            else:
+                pass
+            text = 'Вашаш сообщение отправлено в рассылку.'
         msg_result = await bot.send_message(
             message.from_user.id,
-            f'Сообщение отправлено в наш канал. Ваш текущий баланс <b>{balance_now} руб.</b>',
+            f'{text} Ваш текущий баланс <b>{balance_now} руб.</b>',
             reply_markup=back_to_main_menu)
         cleaner.trash.append(msg_result.message_id)
     else:

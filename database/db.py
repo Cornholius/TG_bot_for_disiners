@@ -30,3 +30,8 @@ class Database():
             cursor.execute(f'UPDATE users SET balance = {new_balance} WHERE user_id = {user_id}')
             self.conn.commit
             self.conn.close
+
+    def get_random_people(self, count):
+        cursor = self.conn.cursor()
+        random_people = cursor.execute(f'SELECT user_id FROM customer by RANDOM() LIMIT {count}')
+        print(random_people.fetchall())
