@@ -1,7 +1,7 @@
 import sqlite3
 
 
-class Database():
+class Database:
     
     def __init__(self) -> None:
         self.conn = sqlite3.connect("./database/database.db")
@@ -11,7 +11,18 @@ class Database():
             cursor = self.conn.cursor()
             info = cursor.execute(f'SELECT * FROM users WHERE user_id = {user_id}')
             if info.fetchone() is None:
-                cursor.execute('INSERT INTO users(user_id, first_name, last_name, balance) VALUES (?, ?, ?, ?)', (user_id, first_name, last_name, 0))
+                cursor.execute(
+                    'INSERT INTO users(user_id, first_name, last_name, balance) VALUES (?, ?, ?, ?)',
+                    (user_id, first_name, last_name, 0))
+            self.conn.commit
+            self.conn.close
+
+    def add_customer(self, user_id, first_name, last_name):
+        with self.conn:
+            cursor = self.conn.cursor()
+            cursor.execute(
+                    'INSERT INTO customer(user_id, first_name, last_name) VALUES (?, ?, ?)',
+                    (user_id, first_name, last_name))
             self.conn.commit
             self.conn.close
 

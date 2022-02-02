@@ -101,10 +101,15 @@ async def send_to_channel(message: types.Message, state: FSMContext, callback_da
                 await bot.send_message(channel_id, result['set_text'])
             text = 'Ваше сообщение отправлено в канал.'
         else:
+            customers = db.get_random_people(10)
             if result['need_image']:
-                pass
+                for customer in customers:
+                    print(customer)
+                    # await bot.send_photo(customer, photo=result["set_image"], caption=result['set_text'])
             else:
-                pass
+                for customer in customers:
+                    print(customer)
+                    # await bot.send_message(channel_id, result['set_text'])
             text = 'Вашаш сообщение отправлено в рассылку.'
         msg_result = await bot.send_message(
             message.from_user.id,

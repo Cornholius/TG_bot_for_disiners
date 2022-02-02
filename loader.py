@@ -11,6 +11,8 @@ with open('config.json') as conf:
     channel_id = config["channel_id"]
     price_for_order = config["price_for_order"]
     price_for_comment = config["price_for_comment"]
+    # api_id = config['API_ID']
+    # api_hash = config['API_HASH']
 
 
 bot = Bot(token=TOKEN, parse_mode=types.ParseMode.HTML)
