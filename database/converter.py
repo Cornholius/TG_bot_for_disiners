@@ -1,49 +1,39 @@
 import sqlite3
 
-from telethon import TelegramClient, events
-from telethon.tl.functions.users import GetFullUserRequest
+from telethon import TelegramClient, events, functions
 import asyncio
-# from database.db import Database
 api_id = 13293247
 api_hash = 'aed5f6a7274a6952078152081c197a64'
-# db = Database()
-#
-# async def get_user_id_from_username():
-#     with open('123.txt', 'r') as file:
-#         nicknames = file.readlines()
-#     count = 0
-#
-#     for username in nicknames:
-#         count += 1
-#         async with TelegramClient('Little helper', api_id, api_hash) as client:
-#             user = await client(GetFullUserRequest(username))
-#         print(count, user.user.id)
-#         await asyncio.sleep(1)
-#
-#
-# asyncio.run(get_user_id_from_username())
 
-with open('123.txt', 'r') as file:
+with open('100.txt', 'r') as file:
     nicknames = file.readlines()
 
-
 async def main(users):
-    count = 1
-    async with TelegramClient('name', api_id, api_hash) as client:
-        for username in users:
-            user = await client(GetFullUserRequest(username))
-            count += 1
-            conn = sqlite3.connect("database.db")
-            with conn:
-                cursor = conn.cursor()
-                cursor.execute(
-                    'INSERT INTO customer(user_id, first_name, last_name) VALUES (?, ?, ?)',
-                    (user.user.id, user.user.first_name, user.user.last_name))
-                conn.commit
-                conn.close
-                # db.add_customer(user.user.id, user.user.first_name, user.user.last_name)
-            print(count, user.user.id, user.user.first_name, user.user.last_name)
 
-    await client.run_until_disconnected()
+    async with TelegramClient('name', api_id, api_hash) as client:
+        count = 0
+        with open('temp.txt', 'a') as temp:
+            for i in nicknames:
+                count += 1
+                try:
+                    full = await client(functions.users.GetFullUserRequest(i))
+                    # print(nicknames.pop(nicknames.index(i)))
+                    temp.write(f'{full.user.username} {full.user.id} {full.user.first_name} {full.user.last_name}\n')
+                    # print(count, full.user.id, full.user.first_name, full.user.last_name)
+                    nicknames.remove(i)
+
+                except:
+                    print(count, '!!!')
+        with open('100.txt', 'w') as file:
+            for i in nicknames:
+                file.write(i)
 
 asyncio.run(main(nicknames))
+
+# from telethon.sync import TelegramClient
+# from telethon import functions, types
+#
+# with TelegramClient('name', api_id, api_hash) as client:
+#     result = client(functions.users.GetFullUserRequest('@zondishe'))
+#     print(result.stringify())
+#
