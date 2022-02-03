@@ -17,14 +17,10 @@ class Database:
             self.conn.commit
             self.conn.close
 
-    def add_customer(self, user_id, first_name, last_name):
+    def add_customer(self, user_id):
         with self.conn:
             cursor = self.conn.cursor()
-            cursor.execute(
-                    'INSERT INTO customer(user_id, first_name, last_name) VALUES (?, ?, ?)',
-                    (user_id, first_name, last_name))
-            self.conn.commit
-            self.conn.close
+            cursor.execute(f'INSERT INTO customer(user_id) VALUES ({user_id})')
 
     def check_balance(self, user_id):
         with self.conn:
@@ -46,3 +42,4 @@ class Database:
         cursor = self.conn.cursor()
         random_people = cursor.execute(f'SELECT user_id FROM customer by RANDOM() LIMIT {count}')
         print(random_people.fetchall())
+

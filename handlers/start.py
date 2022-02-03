@@ -1,3 +1,5 @@
+import re
+
 from aiogram import types
 from aiogram.types import ContentType
 
@@ -22,11 +24,12 @@ async def role_menu(message: types.Message):
 @dp.message_handler(content_types=[ContentType.DOCUMENT])
 async def catch_doc(message: types.Message):
     url = await message.document.get_url()
-    doc_path = urllib.request.urlopen(url)
-    for i in doc_path.readlines():
-        print(i)
-    # with open(doc_path, 'r') as doc:
-    #     users = doc.readlines()
-    #     for user in users:
-    #         print(user)
+    doc = urllib.request.urlopen(url)
+    for i in doc.readlines():
+        user_id = re.sub("[^0-9]", "", str(i))
+        print(type(int(user_id)))
+        db.add_customer(int(user_id))
+        # except:
+        #     print(user_id)
+
     await bot.delete_message(message.chat.id, message.message_id)
