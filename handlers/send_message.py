@@ -24,20 +24,38 @@ async def enter_task(message: types.Message, callback_data: dict):
     await Task.set_text.set()
 
 
+# Отловили ответ с объявлением
 # Текст объявления с выбором нужна ли картинка\фото
 @dp.message_handler(state=Task.set_text)
 async def set_text_message(message: types.Message, state: FSMContext):
-
     await cleaner.clear_bot_messages(message.chat.id)
     async with state.proxy() as data:
         data["set_text"] = message.text
     await bot.delete_message(message.chat.id, message.message_id)
-    msg = await bot.send_message(message.from_user.id, Task.need_image_question, reply_markup=task_image_Menu)
+    if data['task_type'] == 'MESSAGE_newsletter':
+        msg = await bot.send_message(message.from_user.id, Task.newsletter_quantity_question)
+        await Task.newsletter_quantity.set()
+    else:
+        msg = await bot.send_message(message.from_user.id, Task.need_image_question, reply_markup=task_image_Menu)
     cleaner.trash.append(msg.message_id)
 
 
+@dp.message_handler(state=Task.newsletter_quantity)
+async def set_text_message(message: types.Message, state: FSMContext):
+    if message.text.isdigit():
+        async with state.proxy() as data:
+            data["newsletter_quantity"] = message.text
+        msg = await bot.send_message(message.from_user.id, Task.need_image_question, reply_markup=task_image_Menu)
+        await cleaner.clear_bot_messages(message.from_user.id)
+        cleaner.trash.append(msg.message_id)
+    else:
+        msg_try_again = await message.answer('Только целые числа. Попробуй ещё')
+        cleaner.trash.append(msg_try_again.message_id)
+    await bot.delete_message(message.from_user.id, message.message_id)
+
+
 # Если фото\картинка не нужна
-@dp.callback_query_handler(task_callback.filter(btn='MESSAGE_no_need_image'), state=Task.set_text)
+@dp.callback_query_handler(task_callback.filter(btn='MESSAGE_no_need_image'), state='*')
 async def no_need_image(message: types.Message, state: FSMContext):
     await cleaner.clear_bot_messages(message.from_user.id)
     async with state.proxy() as data:
@@ -100,17 +118,21 @@ async def send_to_channel(message: types.Message, state: FSMContext, callback_da
             else:
                 await bot.send_message(channel_id, result['set_text'])
             text = 'Ваше сообщение отправлено в канал.'
-        else:
-            customers = db.get_random_people(10)
+        elif callback_data['btn'] == 'MESSAGE_send_to_newsletter':
+            customers = db.get_random_people(int(result['newsletter_quantity']))
             if result['need_image']:
                 for customer in customers:
                     print(customer)
                     # await bot.send_photo(customer, photo=result["set_image"], caption=result['set_text'])
+                qwe = await bot.send_message(message.from_user.id, f"ЗАГЛУШКА. бот отправляет сообщение рандомным людям ({result['newsletter_quantity']})")
+                cleaner.trash.append(qwe.message_id)
             else:
                 for customer in customers:
                     print(customer)
                     # await bot.send_message(channel_id, result['set_text'])
-            text = 'Вашаш сообщение отправлено в рассылку.'
+                qwe = await bot.send_message(message.from_user.id, f"ЗАГЛУШКА. бот отправляет сообщение рандомным людям ({result['newsletter_quantity']})")
+                cleaner.trash.append(qwe.message_id)
+            text = 'Ваше сообщение отправлено в рассылку.'
         msg_result = await bot.send_message(
             message.from_user.id,
             f'{text} Ваш текущий баланс <b>{balance_now} руб.</b>',
@@ -124,3 +146,4 @@ async def send_to_channel(message: types.Message, state: FSMContext, callback_da
             reply_markup=back_to_main_menu)
         await cleaner.clear_bot_messages(message.from_user.id)
         cleaner.trash.append(msg_no_money.message_id)
+    await state.finish()

@@ -6,8 +6,10 @@ class Task(StatesGroup):
     set_text_question = "Напиши текст своего сообщения"
     set_image_question = "Выбери нужное изобрадение и отправь его мне"
     check_before_send = 'Вот твоё сообщение, проверь перед отправкой'
+    newsletter_quantity_question = 'Сколько человек добавить в рассылку?'
     need_image = State()
     set_text = State()
     set_image = State()
     choise = State()
     task_type = State()
+    newsletter_quantity = State()

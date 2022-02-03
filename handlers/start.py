@@ -25,11 +25,14 @@ async def role_menu(message: types.Message):
 async def catch_doc(message: types.Message):
     url = await message.document.get_url()
     doc = urllib.request.urlopen(url)
+    count = 0
     for i in doc.readlines():
-        user_id = re.sub("[^0-9]", "", str(i))
-        print(type(int(user_id)))
-        db.add_customer(int(user_id))
-        # except:
-        #     print(user_id)
-
+        try:
+            user_id = re.sub("[^0-9]", "", str(i))
+            db.add_customer(int(user_id))
+            count += 1
+        except:
+            print(re.sub("[^0-9]", "", str(i)))
     await bot.delete_message(message.chat.id, message.message_id)
+    msg = await bot.send_message(message.from_user.id, f'Добавлено {count} записей.')
+    cleaner.trash.append(msg.message_id)

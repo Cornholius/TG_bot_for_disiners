@@ -17,7 +17,7 @@ make_announcement_btn = InlineKeyboardButton(
     callback_data=menu_callback.new(btn='MESSAGE_announcement'))
 
 make_newsletter_btn = InlineKeyboardButton(
-    text='Сделать рассылку (пока не работает)',
+    text='Сделать рассылку',
     callback_data=menu_callback.new(btn='MESSAGE_newsletter'))
 
 rtfm_btn = InlineKeyboardButton(
