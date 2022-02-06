@@ -9,8 +9,8 @@ with open('config.json') as conf:
     TOKEN = config['token']
     test_payload_token = config['test_payment_id']
     channel_id = config["channel_id"]
-    price_for_order = config["price_for_order"]
-    price_for_comment = config["price_for_comment"]
+    price_for_newsletter = float(config["price_for_newsletter"])
+    price_for_message = int(config["price_for_message"])
     # api_id = config['API_ID']
     # api_hash = config['API_HASH']
 

@@ -4,7 +4,7 @@ from aiogram.types import ContentType
 from keyboards import menu_callback, task_image_Menu, task_send_to_channel_menu, cancel_menu, back_to_main_menu
 from keyboards.callback_datas import task_callback
 from keyboards.task_menu import task_send_to_newsletter_menu
-from loader import dp, bot, db, price_for_order, channel_id
+from loader import dp, bot, db, price_for_newsletter, channel_id, price_for_message
 from logic.clear_mesages import cleaner
 from states import Task
 
@@ -109,35 +109,40 @@ async def send_to_channel(message: types.Message, state: FSMContext, callback_da
     await cleaner.clear_bot_messages(message.from_user.id)
     result = await state.get_data()
     user_account = db.check_balance(message.from_user.id)
-    if user_account > price_for_order:
-        db.update_balance(message.from_user.id, -price_for_order)
+
+    # Если сообщение отправлено в канал. Проверяем баланс и отправляем
+    if callback_data['btn'] == 'MESSAGE_send_to_channel' and user_account > price_for_message:
+        db.update_balance(message.from_user.id, -price_for_message)
         balance_now = db.check_balance(message.from_user.id)
-        if callback_data['btn'] == 'MESSAGE_send_to_channel':
-            if result['need_image']:
-                await bot.send_photo(channel_id, photo=result["set_image"], caption=result['set_text'])
-            else:
-                await bot.send_message(channel_id, result['set_text'])
-            text = 'Ваше сообщение отправлено в канал.'
-        elif callback_data['btn'] == 'MESSAGE_send_to_newsletter':
-            customers = db.get_random_people(int(result['newsletter_quantity']))
-            if result['need_image']:
-                for customer in customers:
-                    print(customer)
-                    # await bot.send_photo(customer, photo=result["set_image"], caption=result['set_text'])
-                qwe = await bot.send_message(message.from_user.id, f"ЗАГЛУШКА. бот отправляет сообщение рандомным людям ({result['newsletter_quantity']})")
-                cleaner.trash.append(qwe.message_id)
-            else:
-                for customer in customers:
-                    print(customer)
-                    # await bot.send_message(channel_id, result['set_text'])
-                qwe = await bot.send_message(message.from_user.id, f"ЗАГЛУШКА. бот отправляет сообщение рандомным людям ({result['newsletter_quantity']})")
-                cleaner.trash.append(qwe.message_id)
-            text = 'Ваше сообщение отправлено в рассылку.'
-        msg_result = await bot.send_message(
-            message.from_user.id,
-            f'{text} Ваш текущий баланс <b>{balance_now} руб.</b>',
-            reply_markup=back_to_main_menu)
-        cleaner.trash.append(msg_result.message_id)
+        if result['need_image']:
+            await bot.send_photo(channel_id, photo=result["set_image"], caption=result['set_text'])
+        else:
+            await bot.send_message(channel_id, result['set_text'])
+        text = 'Ваше сообщение отправлено в канал.'
+
+    # Если сообщение отправлено в рассылку. Проверяем баланс и отправляем
+    elif callback_data['btn'] == 'MESSAGE_send_to_newsletter' \
+            and user_account > int(result['newsletter_quantity']) * price_for_newsletter:
+        db.update_balance(message.from_user.id, -price_for_newsletter * int(result['newsletter_quantity']))
+        balance_now = db.check_balance(message.from_user.id)
+        customers = db.get_random_people(int(result['newsletter_quantity']))
+        if result['need_image']:
+            for customer in customers:
+                print(customer)
+                # await bot.send_photo(customer, photo=result["set_image"], caption=result['set_text'])
+            qwe = await bot.send_message(message.from_user.id, f"ЗАГЛУШКА. бот отправляет сообщение рандомным людям "
+                                                               f"({result['newsletter_quantity']})")
+            cleaner.trash.append(qwe.message_id)
+        else:
+            for customer in customers:
+                print(customer)
+                # await bot.send_message(channel_id, result['set_text'])
+            qwe = await bot.send_message(message.from_user.id, f"ЗАГЛУШКА. бот отправляет сообщение рандомным людям "
+                                                               f"({result['newsletter_quantity']})")
+            cleaner.trash.append(qwe.message_id)
+        text = 'Ваше сообщение отправлено в рассылку.'
+
+    # Если денег не хватило сообщаем об этом
     else:
         balance_now = db.check_balance(message.from_user.id)
         msg_no_money = await bot.send_message(
@@ -147,3 +152,11 @@ async def send_to_channel(message: types.Message, state: FSMContext, callback_da
         await cleaner.clear_bot_messages(message.from_user.id)
         cleaner.trash.append(msg_no_money.message_id)
     await state.finish()
+
+    msg_result = await bot.send_message(
+        message.from_user.id,
+        f'{text} Ваш текущий баланс <b>{balance_now} руб.</b>',
+        reply_markup=back_to_main_menu)
+    cleaner.trash.append(msg_result.message_id)
+
+

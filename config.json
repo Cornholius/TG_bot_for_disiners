@@ -2,8 +2,8 @@
     "token": "1174022654:AAHP3PA0H_7UJX9AbyJAJ0W9CzVHn_2YFdo",
     "test_payment_id": "381764678:TEST:32186",
     "channel_id": -1001773059385,
-    "price_for_order": 100,
-    "price_for_comment": 5,
+    "price_for_newsletter": 1.5,
+    "price_for_message": 0,
     "API_ID": 13293247,
     "API_HASH:": "aed5f6a7274a6952078152081c197a64"
 }

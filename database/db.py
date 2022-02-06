@@ -27,13 +27,13 @@ class Database:
             cursor = self.conn.cursor()
             data = cursor.execute(f'SELECT balance FROM users WHERE user_id = {user_id}')
             self.conn.close
-            return int(data.fetchone()[0])
+            return float(data.fetchone()[0])
 
     def update_balance(self, user_id, money):
         with self.conn:
             cursor = self.conn.cursor()
             balance = cursor.execute(f'SELECT balance FROM users WHERE user_id = {user_id}').fetchone()[0]
-            new_balance = int(balance) + int(money)
+            new_balance = float(balance) + float(money)
             cursor.execute(f'UPDATE users SET balance = {new_balance} WHERE user_id = {user_id}')
             self.conn.commit
             self.conn.close
