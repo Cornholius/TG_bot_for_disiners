@@ -40,9 +40,9 @@ class Database:
 
     def get_random_people(self, count):
         cursor = self.conn.cursor()
-        selection = cursor.execute(f'SELECT user_id FROM customer ORDER BY RANDOM() LIMIT {count}').fetchall()
+        selection = cursor.execute(f'SELECT user_id FROM users ORDER BY RANDOM() LIMIT {count}').fetchall()
         random_people = []
         for i in selection:
-            random_people.append(int(i[0]))
+            random_people.append(str(i[0]))
         return random_people
 
