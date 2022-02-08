@@ -1,8 +1,9 @@
 from aiogram import types
 from aiogram.dispatcher import FSMContext
 from aiogram.types import ContentType
-from keyboards import menu_callback, task_image_Menu, task_send_to_channel_menu, cancel_menu, back_to_main_menu
-from keyboards.callback_datas import task_callback
+from keyboards import menu_callback, task_image_Menu, task_send_to_channel_menu, cancel_menu, back_to_main_menu, \
+    designer_contact
+from keyboards.callback_datas import task_callback, designer_callback
 from keyboards.task_menu import task_send_to_newsletter_menu
 from loader import dp, bot, db, price_for_newsletter, channel_id, price_for_message
 from logic.clear_mesages import cleaner
@@ -137,8 +138,13 @@ async def send_to_channel(message: types.Message, state: FSMContext, callback_da
             for customer in customers:
                 print(customer)
                 # await bot.send_message(channel_id, result['set_text'])
-            qwe = await bot.send_message(message.from_user.id, f"ЗАГЛУШКА. бот отправляет сообщение рандомным людям "
-                                                               f"({result['newsletter_quantity']})")
+            # greeting_text = f"""Здравствуйте. Предлагаем Вашему вниманию следующее предложение дизайнера.\n
+            #                 \n
+            #                 {result['set_text']}"""
+            greeting_text = 'Test message. Please ignore'
+
+            qwe = await bot.send_message(message.from_user.id, greeting_text, reply_markup=designer_contact)
+
             cleaner.trash.append(qwe.message_id)
         text = 'Ваше сообщение отправлено в рассылку.'
 
@@ -160,3 +166,7 @@ async def send_to_channel(message: types.Message, state: FSMContext, callback_da
     cleaner.trash.append(msg_result.message_id)
 
 
+@dp.callback_query_handler(designer_callback.filter(btn='DESIGNER_chat'))
+async def to_private_chat(message: types.Message):
+    chat_id = 2121928809
+    link = await bot.send_message(chat_id, 'Test message. Please ignore')
