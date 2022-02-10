@@ -53,3 +53,9 @@ class Database:
             cursor.execute('INSERT INTO task(author, message, picture, targets) VALUES(?, ?, ?, ?)',
                            (author, message, picture, targets)
                            )
+
+    def get_task(self, task_id):
+        with self.conn:
+            cursor = self.conn.cursor()
+            task = cursor.execute(f'SELECT picture FROM task WHERE id = {task_id}').fetchone()[0]
+            return task

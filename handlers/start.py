@@ -18,9 +18,6 @@ async def role_menu(message: types.Message):
 
 @dp.message_handler(commands=['test'])
 async def test(message: types.Message):
-    print('admins', type(admins[0]))
-    print(message.from_user.username)
-    users = db.get_random_people(3)
-    print(users)
-    text = '\n'.join(users)
-    await message.answer(text)
+    pic = db.get_task(12)
+    print(pic)
+    await bot.send_photo(message.from_user.id, pic)
