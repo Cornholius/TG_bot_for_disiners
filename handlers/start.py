@@ -1,6 +1,6 @@
 from aiogram import types
 from keyboards import main_menu
-from loader import dp, bot, db
+from loader import dp, bot, db, admins
 from logic.clear_mesages import cleaner
 
 import csv
@@ -18,6 +18,7 @@ async def role_menu(message: types.Message):
 
 @dp.message_handler(commands=['test'])
 async def test(message: types.Message):
+    print('admins', type(admins[0]))
     print(message.from_user.username)
     users = db.get_random_people(3)
     print(users)

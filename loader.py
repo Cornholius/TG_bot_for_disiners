@@ -11,6 +11,7 @@ with open('config.json') as conf:
     channel_id = config["channel_id"]
     price_for_newsletter = float(config["price_for_newsletter"])
     price_for_message = int(config["price_for_message"])
+    admins = config["admins"]
     # api_id = config['API_ID']
     # api_hash = config['API_HASH']
 

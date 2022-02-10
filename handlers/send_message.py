@@ -5,7 +5,7 @@ from keyboards import menu_callback, task_image_Menu, task_send_to_channel_menu,
     designer_contact
 from keyboards.callback_datas import task_callback, designer_callback
 from keyboards.task_menu import task_send_to_newsletter_menu
-from loader import dp, bot, db, price_for_newsletter, channel_id, price_for_message
+from loader import dp, bot, db, price_for_newsletter, channel_id, price_for_message, admins
 from logic.clear_mesages import cleaner
 from states import Task
 
@@ -113,40 +113,42 @@ async def send_to_channel(message: types.Message, state: FSMContext, callback_da
 
     # Если сообщение отправлено в канал. Проверяем баланс и отправляем
     if callback_data['btn'] == 'MESSAGE_send_to_channel' and user_account > price_for_message:
+        text = 'Ваше сообщение отправлено в канал.'
         db.update_balance(message.from_user.id, -price_for_message)
         balance_now = db.check_balance(message.from_user.id)
         if result['need_image']:
             await bot.send_photo(channel_id, photo=result["set_image"], caption=result['set_text'])
         else:
             await bot.send_message(channel_id, result['set_text'])
-        text = 'Ваше сообщение отправлено в канал.'
 
     # Если сообщение отправлено в рассылку. Проверяем баланс и отправляем
     elif callback_data['btn'] == 'MESSAGE_send_to_newsletter' \
             and user_account > int(result['newsletter_quantity']) * price_for_newsletter:
+        text = 'Ваше сообщение отправлено в рассылку.'
         db.update_balance(message.from_user.id, -price_for_newsletter * int(result['newsletter_quantity']))
         balance_now = db.check_balance(message.from_user.id)
         customers = db.get_random_people(int(result['newsletter_quantity']))
+        picture = ""
+        author_info = [
+            message.from_user.username,
+            message.from_user.first_name,
+            message.from_user.last_name,
+            message.from_user.id
+        ]
+        author = [i for i in author_info if i is not None]
+
+        # Если рассылка с картинкой
         if result['need_image']:
-            for customer in customers:
-                print(customer)
-                # await bot.send_photo(customer, photo=result["set_image"], caption=result['set_text'])
-            qwe = await bot.send_message(message.from_user.id, f"ЗАГЛУШКА. бот отправляет сообщение рандомным людям "
-                                                               f"({result['newsletter_quantity']})")
-            cleaner.trash.append(qwe.message_id)
-        else:
-            for customer in customers:
-                print(customer)
-                # await bot.send_message(channel_id, result['set_text'])
-            # greeting_text = f"""Здравствуйте. Предлагаем Вашему вниманию следующее предложение дизайнера.\n
-            #                 \n
-            #                 {result['set_text']}"""
-            greeting_text = 'Test message. Please ignore'
+            picture = result['set_image']
 
-            qwe = await bot.send_message(message.from_user.id, greeting_text, reply_markup=designer_contact)
-
-            cleaner.trash.append(qwe.message_id)
-        text = 'Ваше сообщение отправлено в рассылку.'
+        db.create_task(
+            author=' '.join(map(str, author)),
+            message=result['set_text'],
+            picture=picture,
+            targets='\n'.join(map(str, customers))
+        )
+        for admin in admins:
+            await bot.send_message(admin, f"добавлена новая задача от {' '.join(map(str, author))}")
 
     # Если денег не хватило сообщаем об этом
     else:

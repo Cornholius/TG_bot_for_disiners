@@ -5,5 +5,6 @@
     "price_for_newsletter": 1.5,
     "price_for_message": 0,
     "API_ID": 13293247,
-    "API_HASH:": "aed5f6a7274a6952078152081c197a64"
+    "API_HASH:": "aed5f6a7274a6952078152081c197a64",
+    "admins": [1272900243, 362594800]
 }

@@ -11,24 +11,26 @@ with open('100.txt', 'r') as file:
 async def main(users):
 
     async with TelegramClient('name', api_id, api_hash) as client:
-        count = 0
-        with open('temp.txt', 'a') as temp:
-            for i in nicknames:
-                count += 1
-                try:
-                    full = await client(functions.users.GetFullUserRequest(i))
-                    # print(nicknames.pop(nicknames.index(i)))
-                    temp.write(f'{full.user.username} {full.user.id} {full.user.first_name} {full.user.last_name}\n')
-                    # print(count, full.user.id, full.user.first_name, full.user.last_name)
-                    nicknames.remove(i)
+        full = await client(functions.users.GetFullUserRequest(users))
+        print(full)
+        # count = 0
+        # with open('temp.txt', 'a') as temp:
+        #     for i in nicknames:
+        #         count += 1
+        #         try:
+        #             full = await client(functions.users.GetFullUserRequest(i))
+        #             # print(nicknames.pop(nicknames.index(i)))
+        #             temp.write(f'{full.user.username} {full.user.id} {full.user.first_name} {full.user.last_name}\n')
+        #             # print(count, full.user.id, full.user.first_name, full.user.last_name)
+        #             nicknames.remove(i)
+        #
+        #         except:
+        #             print(count, '!!!')
+        # with open('100.txt', 'w') as file:
+        #     for i in nicknames:
+        #         file.write(i)
 
-                except:
-                    print(count, '!!!')
-        with open('100.txt', 'w') as file:
-            for i in nicknames:
-                file.write(i)
-
-asyncio.run(main(nicknames))
+asyncio.run(main(1695990268))
 
 # from telethon.sync import TelegramClient
 # from telethon import functions, types
