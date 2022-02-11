@@ -166,9 +166,3 @@ async def send_to_channel(message: types.Message, state: FSMContext, callback_da
         f'{text} Ваш текущий баланс <b>{balance_now} руб.</b>',
         reply_markup=back_to_main_menu)
     cleaner.trash.append(msg_result.message_id)
-
-
-@dp.callback_query_handler(designer_callback.filter(btn='DESIGNER_chat'))
-async def to_private_chat(message: types.Message):
-    chat_id = 2121928809
-    link = await bot.send_message(chat_id, 'Test message. Please ignore')

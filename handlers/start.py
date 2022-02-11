@@ -3,7 +3,6 @@ from keyboards import main_menu
 from loader import dp, bot, db, admins
 from logic.clear_mesages import cleaner
 
-import csv
 
 @dp.message_handler(commands=['start'])
 async def role_menu(message: types.Message):
@@ -21,3 +20,8 @@ async def test(message: types.Message):
     pic = db.get_task(12)
     print(pic)
     await bot.send_photo(message.from_user.id, pic)
+
+
+@dp.message_handler(commands=['gettask'])
+async def get_task(message: types.Message):
+    db.get_task()
