@@ -1,5 +1,9 @@
 from aiogram import types
+from aiogram.types import CallbackQuery
+
 from keyboards import main_menu
+from keyboards.callback_datas import task_callback, get_task_callback
+from keyboards.task_menu import create_task_menu
 from loader import dp, bot, db, admins
 from logic.clear_mesages import cleaner
 
@@ -15,13 +19,8 @@ async def role_menu(message: types.Message):
     cleaner.trash.append(msg.message_id)
 
 
-@dp.message_handler(commands=['test'])
-async def test(message: types.Message):
-    pic = db.get_task(12)
-    print(pic)
-    await bot.send_photo(message.from_user.id, pic)
-
-
-@dp.message_handler(commands=['gettask'])
-async def get_task(message: types.Message):
-    db.get_task()
+# @dp.message_handler(commands=['test'])
+# async def test(message: types.Message):
+    # pic = db.get_task(12)
+    # print(pic)
+    # await bot.send_photo(message.from_user.id, pic)

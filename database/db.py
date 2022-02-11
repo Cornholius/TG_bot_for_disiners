@@ -54,9 +54,14 @@ class Database:
                            (author, message, picture, targets)
                            )
 
-    def get_task(self):
+    def get_all_tasks(self):
         with self.conn:
             cursor = self.conn.cursor()
-            task = cursor.execute(f'SELECT author, message,picture, targets FROM task').fetchall()
-            print(task)
+            task = cursor.execute(f'SELECT * FROM task').fetchall()
+            return task
+
+    def get_current_task(self, task_id):
+        with self.conn:
+            cursor = self.conn.cursor()
+            task = cursor.execute(f'SELECT * FROM task WHERE id = {task_id}').fetchone()
             return task

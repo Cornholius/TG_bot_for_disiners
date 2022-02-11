@@ -1,6 +1,6 @@
-from aiogram.types import KeyboardButton, InlineKeyboardMarkup
+from aiogram.types import KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton
 from keyboards.back_and_cancel import cancel_menu_btn, back_to_main_menu_btn
-from keyboards.callback_datas import task_callback
+from keyboards.callback_datas import task_callback, get_task_callback
 
 need_image_btn = KeyboardButton(
     text='Да',
@@ -28,3 +28,17 @@ task_send_to_channel_menu.insert(send_to_channel_btn)
 task_send_to_channel_menu.insert(back_to_main_menu_btn)
 task_send_to_newsletter_menu.insert(send_to_newsletter_btn)
 task_send_to_newsletter_menu.insert(back_to_main_menu_btn)
+
+
+# Меню для получения задачи на почту
+# get_task_menu = InlineKeyboardMarkup(row_width=1)
+# get_task_menu_btn = KeyboardButton(
+#     text='Взять задачу',
+#     callback_data=get_task_callback.new(btn='TASK_get_task', task_id='098'))
+# get_task_menu.insert(get_task_menu_btn)
+
+def create_task_menu(task_id):
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [KeyboardButton(text='Взять задачу', callback_data=get_task_callback.new(btn='TASK_get_task', task_id=task_id))]
+        ])
