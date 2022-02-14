@@ -69,3 +69,4 @@ async def process_pay(message: types.Message):
                                      f'Оплата прошла успешно!\n<b>Ваш баланс: {new_balance} руб.</b>',
                                      reply_markup=back_to_main_menu)
         cleaner.trash.append(msg.message_id)
+

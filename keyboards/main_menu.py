@@ -28,6 +28,7 @@ rates_btn = InlineKeyboardButton(
     text='Тарифы (пока не работает)',
     callback_data=menu_callback.new(btn='rates'))
 
+
 main_menu = InlineKeyboardMarkup(row_width=2)
 
 main_menu.insert(check_money_btn)

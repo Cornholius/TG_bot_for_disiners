@@ -65,3 +65,12 @@ class Database:
             cursor = self.conn.cursor()
             task = cursor.execute(f'SELECT * FROM task WHERE id = {task_id}').fetchone()
             return task
+
+    def change_status_task(self, task_id, new_status):
+        with self.conn:
+            cursor = self.conn.cursor()
+            cursor.execute(f"UPDATE task SET status = '{new_status}' WHERE id = {int(task_id)}")
+
+    def delete_task(self, task_id):
+        cursor = self.conn.cursor()
+        cursor.execute(f'DELETE FROM task WHERE id = {int(task_id)}')
