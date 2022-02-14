@@ -1,7 +1,7 @@
 import re
 from aiogram import types
 from aiogram.types import ContentType, CallbackQuery
-
+from filters import IsAdmin
 from keyboards import get_task_callback
 from keyboards.task_menu import create_task_menu
 from loader import dp, bot, db
@@ -9,7 +9,7 @@ from logic.clear_mesages import cleaner
 import urllib.request
 
 
-@dp.message_handler(content_types=[ContentType.DOCUMENT])
+@dp.message_handler(IsAdmin(), content_types=[ContentType.DOCUMENT])
 async def catch_doc(message: types.Message):
     url = await message.document.get_url()
     doc = urllib.request.urlopen(url)
@@ -26,7 +26,7 @@ async def catch_doc(message: types.Message):
     cleaner.trash.append(msg.message_id)
 
 
-@dp.message_handler(commands=['gettask'])
+@dp.message_handler(IsAdmin(), commands=['gettask'])
 async def get_task(message: types.Message):
     for task in db.get_all_tasks():
         text = f'Заявка №{task[0]}\nЗаказчик: {task[1]}\nСтатус {task[5]}'
@@ -36,8 +36,6 @@ async def get_task(message: types.Message):
 
 @dp.callback_query_handler(get_task_callback.filter(btn='TASK_get_task'))
 async def send_task_to_email(call: CallbackQuery, callback_data: dict):
-    print(callback_data['task_id'])
     task = db.get_current_task(callback_data['task_id'])
-    print(task)
     text = f'заказчик: {task[1]}\n\nтекст рассылки:\n{task[2]}\n\nid для рассылки:\n{task[4]}'
     await call.message.answer(text)

@@ -5,14 +5,20 @@ import asyncio
 api_id = 13293247
 api_hash = 'aed5f6a7274a6952078152081c197a64'
 
-with open('100.txt', 'r') as file:
-    nicknames = file.readlines()
+# with open('100.txt', 'r') as file:
+#     nicknames = file.readlines()
 
 async def main(users):
-
+    ppl = [362594800, 1121467380, 5038372944, 1695990268]
     async with TelegramClient('name', api_id, api_hash) as client:
-        full = await client(functions.users.GetFullUserRequest(users))
-        print(full)
+        # full = await client(functions.users.GetFullUserRequest(users))
+        # print(full)
+        for i in ppl:
+            try:
+                await client.send_message(entity=i, message='это тестовое сообщение. не обращайте на него внимания')
+                print(f'sending to {i} OK')
+            except:
+                print(f'sending to {i} FAILED')
         # count = 0
         # with open('temp.txt', 'a') as temp:
         #     for i in nicknames:
@@ -30,7 +36,7 @@ async def main(users):
         #     for i in nicknames:
         #         file.write(i)
 
-asyncio.run(main(1695990268))
+asyncio.run(main(5038372944))
 
 # from telethon.sync import TelegramClient
 # from telethon import functions, types
