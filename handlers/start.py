@@ -19,7 +19,10 @@ async def role_menu(message: types.Message):
         menu_text = '===== Главное меню ====='
         msg = await bot.send_message(
             message.from_user.id,
-            'Здравствуй {}! бла бла бла какой нибудь текст'.format(message.from_user['first_name']))
+            'Здравствуй {}! Бот находится в стадии разработки '
+            'поэтому некоторый функционал сейчас недоступен. '
+            'В данный момент мы ведём работу по подключению способа оплаты картой для пополнения счёта'
+                .format(message.from_user['first_name']))
         cleaner.trash.append(msg.message_id)
 
     await bot.delete_message(message.chat.id, message.message_id)

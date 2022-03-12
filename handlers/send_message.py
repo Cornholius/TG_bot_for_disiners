@@ -19,7 +19,7 @@ async def enter_task(message: types.Message, callback_data: dict):
     async with state.proxy() as data:
         data['task_type'] = callback_data['btn']
     await cleaner.clear_bot_messages(message.from_user.id)
-    await bot.delete_message(message.from_user.id, message.message.message_id)
+    # await bot.delete_message(message.from_user.id, message.message.message_id)
     msg = await bot.send_message(message.from_user.id, Task.set_text_question, reply_markup=cancel_menu)
     cleaner.trash.append(msg.message_id)
     await Task.set_text.set()
@@ -135,6 +135,7 @@ async def send_to_channel(message: types.Message, state: FSMContext, callback_da
             message.from_user.last_name,
             message.from_user.id
         ]
+        print(len(customers))
         author = [i for i in author_info if i is not None]
 
         # Если рассылка с картинкой

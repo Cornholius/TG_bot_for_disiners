@@ -18,7 +18,7 @@ async def check_balance(call: CallbackQuery):
 @dp.callback_query_handler(menu_callback.filter(btn='BALANCE_replenish_balance'))
 async def replenish_balance(call: types.CallbackQuery):
     await cleaner.clear_bot_messages(call.from_user.id)
-    await bot.delete_message(call.from_user.id, call.message.message_id)
+    # await bot.delete_message(call.from_user.id, call.message.message_id)
     msg = await bot.send_message(call.from_user.id, Payment.question1, reply_markup=cancel_menu)
     cleaner.trash.append(msg.message_id)
     await Payment.answer1.set()

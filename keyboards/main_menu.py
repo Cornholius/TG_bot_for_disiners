@@ -21,12 +21,16 @@ make_newsletter_btn = InlineKeyboardButton(
     callback_data=menu_callback.new(btn='MESSAGE_newsletter'))
 
 rtfm_btn = InlineKeyboardButton(
-    text='Помощь (пока не работает)',
-    callback_data=menu_callback.new(btn='help'))
+    text='Помощь',
+    callback_data=menu_callback.new(btn='rtfm'))
 
-rates_btn = InlineKeyboardButton(
-    text='Тарифы (пока не работает)',
-    callback_data=menu_callback.new(btn='rates'))
+prices_btn = InlineKeyboardButton(
+    text='Прайс лист',
+    callback_data=menu_callback.new(btn='prices'))
+
+about_us_btn = InlineKeyboardButton(
+    text='О нас',
+    callback_data=menu_callback.new(btn='about_us'))
 
 
 main_menu = InlineKeyboardMarkup(row_width=2)
@@ -35,5 +39,6 @@ main_menu.insert(check_money_btn)
 main_menu.insert(give_money_btn)
 main_menu.insert(make_announcement_btn)
 main_menu.insert(make_newsletter_btn)
-main_menu.insert(rates_btn)
+main_menu.insert(prices_btn)
 main_menu.insert(rtfm_btn)
+main_menu.insert(about_us_btn)

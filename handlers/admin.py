@@ -1,19 +1,16 @@
-import re
 from aiogram import types
 from aiogram.dispatcher import FSMContext
 from aiogram.types import ContentType, CallbackQuery
 from filters import IsAdmin
-from keyboards import get_task_callback, admin_callback, admin_current_task_menu, admin_menu, main_menu, back_to_admin_menu
+from keyboards import get_task_callback, admin_callback, admin_menu, back_to_admin_menu
 from keyboards.task_menu import create_task_menu, current_task_menu
 from loader import dp, bot, db
 from logic.clear_mesages import cleaner
 import urllib.request
-
-
-# Импортируем список контактов в базу
 from states import ImportContacts
 
 
+# Импортируем список контактов в базу
 @dp.callback_query_handler(IsAdmin(), admin_callback.filter(btn='ADMIN_contacts_import'))
 async def import_contacts(call: types.CallbackQuery):
     await cleaner.clear_bot_messages(call.from_user.id)
@@ -26,6 +23,7 @@ async def import_contacts(call: types.CallbackQuery):
     await ImportContacts.set_doc.set()
 
 
+# Отлавливаем файл с id контактов
 @dp.message_handler(IsAdmin(), content_types=[ContentType.DOCUMENT], state=ImportContacts.set_doc)
 async def catch_doc(message: types.Message, state: FSMContext):
     await cleaner.clear_bot_messages(message.from_user.id)
@@ -35,11 +33,11 @@ async def catch_doc(message: types.Message, state: FSMContext):
     for i in doc.readlines():
         try:
             i.isdigit()
-            # user_id = re.sub("[^0-9]", "", str(i))
             db.add_customer(int(i))
             count += 1
+
         except:
-            print(re.sub("[^0-9]", "", str(i)))
+            print(i, 'Failed to load')
     await bot.delete_message(message.chat.id, message.message_id)
     msg = await bot.send_message(message.from_user.id, f'Добавлено {count} записей.')
     cleaner.trash.append(msg.message_id)
@@ -52,7 +50,6 @@ async def catch_doc(message: types.Message, state: FSMContext):
 @dp.callback_query_handler(admin_callback.filter(btn='ADMIN_task_list'))
 async def task_list(call: CallbackQuery):
     await cleaner.clear_bot_messages(call.from_user.id)
-    # menu = await bot.delete_message(call.from_user.id, call.message.message_id)
     if len(db.get_all_tasks()) == 0:
         msg = await bot.send_message(call.from_user.id, 'Активных задач нет')
         msg2 = await bot.send_message(call.from_user.id, '===== Меню администратора =====', reply_markup=admin_menu)
